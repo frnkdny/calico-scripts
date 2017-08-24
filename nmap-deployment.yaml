@@ -1,0 +1,37 @@
+# This manifest creates a namespace for deploying nmap.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nmap-scan
+  labels:
+    name: nmap-scan
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+    name: nmap
+    namespace: nmap-scan
+    labels:
+      app: nmap
+spec:
+    replicas: 1
+    template:
+      metadata:
+        labels:
+          app: nmap
+      spec:
+        # Update the IP address range in args to choose the IPs to run nmap on (can be a comma separated list).  
+        containers:
+        - args: 
+          - -sS
+          - -sU
+          - -P0
+          - -T
+          - "5"
+          - -p
+          - 1-1000
+          - 10.244.226.128/26 
+          name: nmap
+          image: uzyexe/nmap
+        nodeSelector:
+          cloud.google.com/gke-nodepool: infrastructure
