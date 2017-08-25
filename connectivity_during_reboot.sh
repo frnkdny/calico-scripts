@@ -17,6 +17,7 @@ echo ""
 kubectl run iperf --image=phlak/iperf
 kubectl scale deployment iperf --replicas=${node_count}
 sleep 5
+echo ""
 iperf_server=$(kubectl get pods --no-headers --all-namespaces -o wide | grep ${worker_nodes_array[0]} | grep iperf  | awk '{print $2}')
 echo "iperf server: $iperf_server"
 iperf_client_ip=$(kubectl get pods --no-headers --all-namespaces -o wide | grep ${worker_nodes_array[1]} | grep iperf | awk '{print $7}')
@@ -45,19 +46,19 @@ for worker_node in $worker_nodes; do
         sleep 3
       done
     fi
-    echo "count is ${count}"
+    echo "Completed iteration: ${count}"
     count=$[$count+1]
-    echo "incremeted count is ${count}"
+    echo ""
   done
 done
 
 echo "kubectl delete deployment iperf..."
 kubectl delete deployment iperf
 echo ""
-if [ $(tail -n +7 iperf-logs | cut -f 2- -d 'c' | grep -c "0\.") -ne "0" ]; then
-  echo "Connectivity Error: Break in connectivity while restarting calico-node found in $IPERF/iperf-logs"
+if [ $(tail -n +7 ${IPERF}/iperf-logs | cut -f 2- -d 'c' | grep -c "0\.") -ne "0" ]; then
+  echo "Connectivity Error: Break in connectivity while restarting calico-node found in ${IPERF}/iperf-logs"
   exit 1
 else
-  echo "PASSED: Connectivity maintained during multiple calico-node restarts."
+  echo "PASSED: Connectivity maintained during ${iter} client/server calico-node restarts."
 fi
 echo "Finished"
